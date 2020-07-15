@@ -1,32 +1,45 @@
-import 'package:flutter/material.dart';
-import 'package:scoped_model/scoped_model.dart';
-import 'package:todo_practice/model/todo.dart';
+import 'package:injectable/injectable.dart';
+import 'package:stacked/stacked.dart';
+import 'package:todo_practice/datamodels/todo.dart';
+import 'package:logging/logging.dart';
+import 'package:todo_practice/locator.dart';
+import 'package:todo_practice/repositories/todo.dart';
 
 enum VisibilityFilter { all, active, completed }
 enum TodoListAction { clearCompleted, markAllIncomplete }
 
-class TodoListModel extends Model {
+@lazySingleton
+class TodoListService with ReactiveServiceMixin {
   List<Todo> list = [];
   VisibilityFilter currentFilter = VisibilityFilter.all;
+  TodoRepository _todoRepository = locator<TodoRepository>();
+  final Logger _log = Logger('TodoListService');
+
+  TodoListService() {
+    listenToReactiveValues([list, currentFilter]);
+  }
+
+  fetchList() async {
+    try {
+      list = await _todoRepository.fetch();
+    } catch (err) {}
+  }
 
   addTodo(Todo todo) {
+    _log.info('addTodo | $todo');
     list = [...list, todo];
-    notifyListeners();
   }
 
   updateTodo(Todo todo) {
     list = list.map((e) => e.id == todo.id ? todo : e).toList();
-    notifyListeners();
   }
 
   removeTodo(Todo todo) {
     list = list.where((element) => element.id != todo.id).toList();
-    notifyListeners();
   }
 
   setCurrentFilter(VisibilityFilter filter) {
     currentFilter = filter;
-    notifyListeners();
   }
 
   List<Todo> get filteredList {
@@ -60,9 +73,5 @@ class TodoListModel extends Model {
         break;
       default:
     }
-    notifyListeners();
   }
-
-  static TodoListModel of(BuildContext context) =>
-      ScopedModel.of<TodoListModel>(context, rebuildOnChange: false);
 }
