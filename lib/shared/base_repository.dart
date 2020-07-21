@@ -14,11 +14,6 @@ abstract class BaseRepository<T extends BaseEntity,
   final String key;
   final String listRoute;
   final Adapter adapter;
-  final Dio dioClient = Dio(BaseOptions(
-      // connectTimeout: 5000,
-      // receiveTimeout: 5000,
-      // headers: {HttpHeaders.userAgentHeader: 'dio'},
-      ));
 
   final _fileHelper = locator<FileHelper>();
   final _hiveService = locator<HiveInterface>();

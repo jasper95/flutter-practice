@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_practice/providers/startup_provider.dart';
 import 'package:todo_practice/providers/todo_list_provider.dart';
 
 class Providers extends StatelessWidget {
@@ -9,7 +10,10 @@ class Providers extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => TodoListProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => TodoListProvider()),
+        ChangeNotifierProvider(create: (_) => StartupProvider())
+      ],
       child: child,
     );
   }

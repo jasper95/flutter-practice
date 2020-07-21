@@ -13,11 +13,15 @@ enum TodoFormView { add, details }
 @hwidget
 Widget todoFormScreen(BuildContext context, {Todo todo, TodoFormView view}) {
   final form = useState(todo.toJson());
+  final _formKey = useMemoized(() => GlobalKey<FormState>());
   TodoListProvider model = Provider.of<TodoListProvider>(context);
   final fields = form.value;
-  print('$fields');
   Function _onChange(String formKey) {
-    return (value) => form.value[formKey] = value;
+    return (value) {
+      Map<String, dynamic> copy = Map<String, dynamic>.from(form.value);
+      copy[formKey] = value;
+      form.value = copy;
+    };
   }
 
   return Scaffold(
@@ -25,7 +29,7 @@ Widget todoFormScreen(BuildContext context, {Todo todo, TodoFormView view}) {
       title: Text(_getTitle(view)),
     ),
     body: Form(
-      // key: _formKey,
+      key: _formKey,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 40),
         child: Column(
@@ -62,7 +66,7 @@ Widget todoFormScreen(BuildContext context, {Todo todo, TodoFormView view}) {
       ),
     ),
     floatingActionButton: FloatingActionButton(
-      onPressed: () => _onValidate(context, model),
+      onPressed: () => _onValidate(context, model, view, _formKey, form.value),
       child: Icon(Icons.save),
     ),
   );
@@ -80,18 +84,24 @@ String _getTitle(TodoFormView view) {
   }
 }
 
-void _onValidate(BuildContext context, TodoListProvider model) {
-  // final form = _formKey.currentState;
-  // if (form.validate()) {
-  //   switch (view) {
-  //     case TodoFormView.add:
-  //       model.addTodo(todo);
-  //       break;
-  //     case TodoFormView.details:
-  //       model.updateTodo(todo);
-  //       break;
-  //     default:
-  //   }
-  //   Navigator.of(context).pop();
-  // }
+void _onValidate(
+    BuildContext context,
+    TodoListProvider model,
+    TodoFormView view,
+    GlobalKey<FormState> _formKey,
+    Map<String, dynamic> data) {
+  final form = _formKey.currentState;
+  if (form.validate()) {
+    Todo todo = Todo.fromJson(data);
+    switch (view) {
+      case TodoFormView.add:
+        model.addTodo(todo);
+        break;
+      case TodoFormView.details:
+        model.updateTodo(todo);
+        break;
+      default:
+    }
+    Navigator.of(context).pop();
+  }
 }
